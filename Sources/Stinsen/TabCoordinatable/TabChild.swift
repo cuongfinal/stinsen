@@ -1,7 +1,7 @@
 import Foundation
 import SwiftUI
 
-struct TabChildItem {
+public struct TabChildItem {
     let presentable: ViewPresentable
     let keyPathIsEqual: (Any) -> Bool
     let tabItem: (Bool) -> AnyView
@@ -16,7 +16,7 @@ public class TabChild: ObservableObject {
     
     @Published var activeItem: TabChildItem!
     
-    var allItems: [TabChildItem]!
+    public var allItems: [TabChildItem]!
     
     public var activeTab: Int {
         didSet {
