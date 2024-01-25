@@ -298,27 +298,20 @@ public extension NavigationCoordinatable {
         return view
     }
     
-    func dismissChild<T: Coordinatable>(coordinator: T, action: (() -> Void)? = nil) {
-        guard let value = stack.value.firstIndex(where: { item in
+    func dismissChild<T: Coordinatable>(coordinator: T, action: (() -> Void)?) {
+        let value = stack.value.firstIndex { item in
             guard let presentable = item.presentable as? StringIdentifiable else {
                 return false
             }
             
             return presentable.id == coordinator.id
-        }) else {
-            assertionFailure("Can not dismiss child when coordinator is top of the stack.")
-            return
-        }
+        }!
         
         self.popTo(value - 1, action)
     }
     
-    func dismissCoordinator(_ action: (() -> ())? = nil) {
-        guard let parent = stack.parent else {
-            assertionFailure("Can not dismiss coordinator when parent is null.")
-            return
-        }
-        parent.dismissChild(coordinator: self, action: action)
+    func dismissCoordinator(_ action: (() -> ())?) {
+        stack.parent!.dismissChild(coordinator: self, action: action)
     }
     
     internal func setupRoot() {
@@ -338,11 +331,11 @@ public extension NavigationCoordinatable {
         self.popTo(int, nil)
     }
     
-    func popLast(_ action: (() -> ())? = nil) {
+    func popLast(_ action: (() -> ())?) {
         self.popTo(self.stack.value.count - 2, action)
     }
     
-    internal func popTo(_ int: Int, _ action: (() -> ())? = nil) {
+    internal func popTo(_ int: Int, _ action: (() -> ())?) {
         if let action = action {
             self.stack.dismissalAction[int] = action
         }
@@ -364,18 +357,9 @@ public extension NavigationCoordinatable {
         return AnyView(NavigationCoordinatableView(id: -1, coordinator: self))
     }
 
-    @discardableResult func popToRoot(_ action: (() -> ())? = nil) -> Self {
+    func popToRoot(_ action: (() -> ())? = nil) -> Self {
         self.popTo(-1, action)
         return self
-    }
-    
-    @discardableResult func route<Input, Output: Coordinatable>(
-        to route: KeyPath<Self, Transition<Self, Presentation, Input, Output>>,
-        _ input: Input,
-        onDismiss: @escaping () -> ()
-    ) -> Output {
-        stack.dismissalAction[stack.value.count - 1] = onDismiss
-        return self.route(to: route, input)
     }
     
     @discardableResult func route<Input, Output: Coordinatable>(
@@ -394,14 +378,6 @@ public extension NavigationCoordinatable {
         )
         output.parent = self
         return output
-    }
-    
-    @discardableResult func route<Output: Coordinatable>(
-        to route: KeyPath<Self, Transition<Self, Presentation, Void, Output>>,
-        onDismiss: @escaping () -> ()
-    ) -> Output {
-        stack.dismissalAction[stack.value.count - 1] = onDismiss
-        return self.route(to: route)
     }
     
     @discardableResult func route<Output: Coordinatable>(
@@ -423,15 +399,6 @@ public extension NavigationCoordinatable {
     
     @discardableResult func route<Input, Output: View>(
         to route: KeyPath<Self, Transition<Self, Presentation, Input, Output>>,
-        _ input: Input,
-        onDismiss: @escaping () -> ()
-    ) -> Self {
-        stack.dismissalAction[stack.value.count - 1] = onDismiss
-        return self.route(to: route, input)
-    }
-    
-    @discardableResult func route<Input, Output: View>(
-        to route: KeyPath<Self, Transition<Self, Presentation, Input, Output>>,
         _ input: Input
     ) -> Self {
         let transition = self[keyPath: route]
@@ -445,14 +412,6 @@ public extension NavigationCoordinatable {
             )
         )
         return self
-    }
-    
-    @discardableResult func route<Output: View>(
-        to route: KeyPath<Self, Transition<Self, Presentation, Void, Output>>,
-        onDismiss: @escaping () -> ()
-    ) -> Self {
-        stack.dismissalAction[stack.value.count - 1] = onDismiss
-        return self.route(to: route)
     }
     
     @discardableResult func route<Output: View>(

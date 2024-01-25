@@ -5,7 +5,6 @@ public struct TabChildItem {
     let presentable: ViewPresentable
     let keyPathIsEqual: (Any) -> Bool
     public let tabItem: (Bool) -> AnyView
-    let onTapped: (Bool) -> Void
 }
 
 /// Wrapper around childCoordinators
@@ -20,7 +19,6 @@ public class TabChild: ObservableObject {
     
     public var activeTab: Int {
         didSet {
-            allItems[activeTab].onTapped(oldValue == activeTab)            
             guard oldValue != activeTab else { return }
             let newItem = allItems[activeTab]
             self.activeItem = newItem
